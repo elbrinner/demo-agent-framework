@@ -1,0 +1,5 @@
+# Ignore .env and build artifacts
+.env
+bin/
+obj/
+.vs/
