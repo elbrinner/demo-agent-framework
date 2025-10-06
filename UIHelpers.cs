@@ -63,7 +63,9 @@ namespace demo_agent_framework
         Console.WriteLine("  1) Hola Mundo - Demo básico Agent Framework con Azure OpenAI");
         Console.WriteLine("  2) Modo Stream");
         Console.WriteLine("  3) AI Foundry - Persistent Agents (crear y ejecutar agente persistente)");
-    }
+        Console.WriteLine("  4) Ollama - Usar modelos locales con Ollama"); 
+
+        }
 
     // Extrae la lógica de elección para reducir la complejidad del método principal.
     public static async Task HandleChoiceAsync(string choice)
@@ -79,6 +81,9 @@ namespace demo_agent_framework
             case "3":
                 await AiFoundryAgent.RunAsync();
                 break;
+            case "4":
+                await Ollama.RunAsync();
+                 break;
             default:
                 Console.WriteLine("Opción no válida. Pulsa Enter e intenta de nuevo.");
                 Console.ReadLine();
