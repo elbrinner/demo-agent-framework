@@ -67,6 +67,7 @@ namespace demo_agent_framework.Helpers
         Console.WriteLine("  5) Contexto");
         Console.WriteLine("  6) Agentes con Tools");
         Console.WriteLine("  7) Aprobación humana");
+        Console.WriteLine("  8) Datos estructurados");
 
         }
 
@@ -96,7 +97,10 @@ namespace demo_agent_framework.Helpers
             case "7":
                 await ApprovalRequest.RunAsync();
                 break;
-                default:
+             case "8":
+                 await StructuredOutput.RunAsync();
+                 break;
+             default:
                 Console.WriteLine("Opción no válida. Pulsa Enter e intenta de nuevo.");
                 Console.ReadLine();
                 break;
