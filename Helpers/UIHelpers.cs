@@ -66,6 +66,7 @@ namespace demo_agent_framework.Helpers
         Console.WriteLine("  4) Ollama - Usar modelos locales con Ollama"); 
         Console.WriteLine("  5) Contexto");
         Console.WriteLine("  6) Agentes con Tools");
+        Console.WriteLine("  7) Aprobación humana");
 
         }
 
@@ -92,7 +93,10 @@ namespace demo_agent_framework.Helpers
             case "6":
                 await AgentTools.RunAsync();
                 break;
-            default:
+            case "7":
+                await ApprovalRequest.RunAsync();
+                break;
+                default:
                 Console.WriteLine("Opción no válida. Pulsa Enter e intenta de nuevo.");
                 Console.ReadLine();
                 break;
