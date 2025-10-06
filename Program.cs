@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 using System.IO;
 using demo_agent_framework.Demos;
-using demo_agent_framework;
+using demo_agent_framework.Helpers;
 
 // Cargar .env si existe (busca hacia arriba)
 UIHelpers.TryLoadDotEnv();

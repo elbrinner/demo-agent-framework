@@ -134,11 +134,10 @@ namespace demo_agent_framework.Demos
                 // --------------------------------------------------
                 if (agent is not null)
                 {
-                    // Crear un nuevo hilo de ejecución para aislar esta conversación
-                    AgentThread thread = agent.GetNewThread();
+           
 
                     // Ejecutar en modo streaming para recibir actualizaciones parciales
-                    await foreach (AgentRunResponseUpdate update in agent.RunStreamingAsync(prompt, thread))
+                    await foreach (AgentRunResponseUpdate update in agent.RunStreamingAsync(prompt))
                     {
                         // Cada 'update' puede contener texto parcial o eventos; lo mostramos en consola
                         Console.Write(update);

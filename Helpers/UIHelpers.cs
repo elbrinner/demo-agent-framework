@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using demo_agent_framework.Demos;
 
-namespace demo_agent_framework
+namespace demo_agent_framework.Helpers
 {
     public static class UIHelpers
 {
@@ -64,6 +64,8 @@ namespace demo_agent_framework
         Console.WriteLine("  2) Modo Stream");
         Console.WriteLine("  3) AI Foundry - Persistent Agents (crear y ejecutar agente persistente)");
         Console.WriteLine("  4) Ollama - Usar modelos locales con Ollama"); 
+        Console.WriteLine("  5) Contexto");
+
 
         }
 
@@ -84,6 +86,10 @@ namespace demo_agent_framework
             case "4":
                 await Ollama.RunAsync();
                  break;
+            case "5":
+                await AgentThread.RunAsync();
+                break;
+            
             default:
                 Console.WriteLine("Opción no válida. Pulsa Enter e intenta de nuevo.");
                 Console.ReadLine();
