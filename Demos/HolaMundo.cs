@@ -23,19 +23,19 @@ namespace demo_agent_framework.Demos
             var endpoint = Credentials.Endpoint;
             var apiKey = Credentials.ApiKey;
             var model = Credentials.Model;
-            var prompt = "¿Que es el Hola mundo en programacion?";
+            var prompt = "Â¿QuÃ© es el 'Hola mundo' en el mundo de la programaciÃ³n?";
 
-            // Crear cliente y agente usando las librerías de Azure/Microsoft.
-            // AzureOpenAIClient: cliente de alto nivel que encapsula la comunicación con el servicio Azure OpenAI.
-            // ApiKeyCredential: credencial simple que envía la API key en las cabeceras de la petición.
+            // Crear cliente y agente usando las librerÃ­as de Azure/Microsoft.
+            // AzureOpenAIClient: cliente de alto nivel que encapsula la comunicaciÃ³n con el servicio Azure OpenAI.
+            // ApiKeyCredential: credencial simple que envÃ­a la API key en las cabeceras de la peticiÃ³n.
             // GetChatClient(model).CreateAIAgent(): obtiene un cliente de chat para el despliegue especificado
-            // y crea una instancia de AIAgent que proporciona métodos para ejecutar prompts y flujos de agente.
+            // y crea una instancia de AIAgent que proporciona mÃ©todos para ejecutar prompts y flujos de agente.
             AzureOpenAIClient client = new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey));
             AIAgent agent = client.GetChatClient(model).CreateAIAgent();
 
-            // Ejecutar una petición simple al agente.
-            // RunAsync envía un prompt (cadena) al agente y recibe una respuesta completa cuando termina.
-            // Esto es útil para demostraciones sencillas donde no se necesita procesar eventos parciales.
+            // Ejecutar una peticiÃ³n simple al agente.
+            // RunAsync envÃ­a un prompt (cadena) al agente y recibe una respuesta completa cuando termina.
+            // Esto es Ãºtil para demostraciones sencillas donde no se necesita procesar eventos parciales.
             AgentRunResponse response = await agent.RunAsync(prompt);
 
             // Mostrar la respuesta devuelta por el agente en la consola.
@@ -43,7 +43,7 @@ namespace demo_agent_framework.Demos
             Console.WriteLine(response);
 
             Console.WriteLine();
-            Console.WriteLine("Demostración finalizada. Pulsa Enter para volver al menú principal.");
+            Console.WriteLine("DemostraciÃ³n finalizada. Pulsa Enter para volver al menÃº principal.");
             Console.ReadLine();
 
         }

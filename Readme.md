@@ -66,7 +66,35 @@ El código del proyecto intenta cargar `.env` automáticamente y también acepta
 Demos actuales:
 - 1) Hola Mundo: petición simple al agente y muestra la respuesta
 - 2) Modo Stream: recibe actualizaciones en streaming del agente
-- 3) En proceso...
+- 3) AI Foundry (Persistent Agents): crea y ejecuta un agente persistente en un servicio compatible (ej.: Azure AI Foundry / Persistent Agents). Muestra creación del agente, ejecución en streaming y uso de credenciales basadas en Service Principal o Azure CLI.
+
+### Demo 3 — AI Foundry (Persistent Agents)
+
+La demo "AI Foundry" (implementada en `Demos/AiFoundryAgent.cs`) muestra cómo crear un agente persistente en un servicio de Persistent Agents y ejecutar un run en modo streaming. Es útil para ver un flujo más realista donde el agente se crea, se mantiene y se ejecuta con historial.
+
+Requisitos y notas importantes:
+
+- Endpoint/URL: la demo usa un endpoint del servicio de Persistent Agents (en el código se define como una constante). Si tu despliegue usa una URL distinta, modifica `Demos/AiFoundryAgent.cs` o añade configuración para leerla desde `.env`.
+- Credenciales: la demo intenta elegir la credencial más adecuada:
+    - Si defines `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_CLIENT_SECRET`, el demo usará `ClientSecretCredential` (Service Principal) y no necesitarás hacer `az login`.
+    - Si no hay credenciales de Service Principal definidas, la demo usa `AzureCliCredential` (requiere haber hecho `az login`).
+- Variables de entorno adicionales (opcional):
+    - `AZURE_CLIENT_ID` — id de la aplicación (Service Principal)
+    - `AZURE_TENANT_ID` — id del tenant
+    - `AZURE_CLIENT_SECRET` — secreto del Service Principal
+
+Cómo funciona la demo (resumen):
+
+1. Selecciona la opción 3 en el menú principal.
+2. El programa crea un agente persistente en el servicio de administración de agentes (si no existe), obtiene el Id y crea un hilo (AgentThread).
+3. Ejecuta el agente en modo streaming y escribe las actualizaciones parciales en la consola.
+4. Pulsa Enter para volver al menú.
+
+Consejos de depuración:
+
+- Si la demo informa errores de autorización, revisa que hayas definido las variables de entorno correctamente o que hayas hecho `az login`.
+- Revisa la constante `endpoint` en `Demos/AiFoundryAgent.cs` si tu servicio usa otra ruta REST.
+
 
 ## Cómo añadir nuevas demos
 
