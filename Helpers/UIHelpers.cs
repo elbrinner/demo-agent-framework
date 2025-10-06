@@ -65,7 +65,7 @@ namespace demo_agent_framework.Helpers
         Console.WriteLine("  3) AI Foundry - Persistent Agents (crear y ejecutar agente persistente)");
         Console.WriteLine("  4) Ollama - Usar modelos locales con Ollama"); 
         Console.WriteLine("  5) Contexto");
-
+        Console.WriteLine("  6) Agentes con Tools");
 
         }
 
@@ -89,7 +89,9 @@ namespace demo_agent_framework.Helpers
             case "5":
                 await AgentThread.RunAsync();
                 break;
-            
+            case "6":
+                await AgentTools.RunAsync();
+                break;
             default:
                 Console.WriteLine("Opción no válida. Pulsa Enter e intenta de nuevo.");
                 Console.ReadLine();

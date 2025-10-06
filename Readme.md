@@ -63,37 +63,56 @@ El código del proyecto intenta cargar `.env` automáticamente y también acepta
 
 3. Usa el menú interactivo para seleccionar la demo que quieras ejecutar.
 
-Demos actuales:
-- 1) Hola Mundo: petición simple al agente y muestra la respuesta
-- 2) Modo Stream: recibe actualizaciones en streaming del agente
-- 3) AI Foundry (Persistent Agents): crea y ejecuta un agente persistente en un servicio compatible (ej.: Azure AI Foundry / Persistent Agents). Muestra creación del agente, ejecución en streaming y uso de credenciales basadas en Service Principal o Azure CLI.
+Demos actuales (detalle de las 6 demos)
 
-### Demo 3 — AI Foundry (Persistent Agents)
+Esta sección describe brevemente las demos disponibles en `Demos/` y qué esperar al ejecutarlas desde el menú principal.
 
-La demo "AI Foundry" (implementada en `Demos/AiFoundryAgent.cs`) muestra cómo crear un agente persistente en un servicio de Persistent Agents y ejecutar un run en modo streaming. Es útil para ver un flujo más realista donde el agente se crea, se mantiene y se ejecuta con historial.
+- 1) Hola Mundo — `Demos/HolaMundo.cs`
+    - Propósito: demo mínima que envía un prompt simple y muestra la respuesta completa (no streaming).
+    - Comportamiento: crea un `AzureOpenAIClient` con `AZURE_OPENAI_ENDPOINT` y `AZURE_OPENAI_KEY`, construye un `AIAgent` y llama a `agent.RunAsync(prompt)`.
+    - Uso: buena para verificar credenciales y que el endpoint/model estén bien configurados.
 
-Requisitos y notas importantes:
+- 2) Modo Stream — `Demos/ModoStream.cs`
+    - Propósito: demostrar la API de streaming del agente para recibir actualizaciones parciales mientras se genera la respuesta.
+    - Comportamiento: usa `agent.RunStreamingAsync(prompt)` y itera `await foreach` mostrando `AgentRunResponseUpdate` en la consola.
+    - Uso: útil para ver latencia/flujo de tokens y para interfaces que renderizan texto incrementalmente.
 
-- Endpoint/URL: la demo usa un endpoint del servicio de Persistent Agents (en el código se define como una constante). Si tu despliegue usa una URL distinta, modifica `Demos/AiFoundryAgent.cs` o añade configuración para leerla desde `.env`.
-- Credenciales: la demo intenta elegir la credencial más adecuada:
-    - Si defines `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_CLIENT_SECRET`, el demo usará `ClientSecretCredential` (Service Principal) y no necesitarás hacer `az login`.
-    - Si no hay credenciales de Service Principal definidas, la demo usa `AzureCliCredential` (requiere haber hecho `az login`).
-- Variables de entorno adicionales (opcional):
-    - `AZURE_CLIENT_ID` — id de la aplicación (Service Principal)
-    - `AZURE_TENANT_ID` — id del tenant
-    - `AZURE_CLIENT_SECRET` — secreto del Service Principal
+- 3) AI Foundry (Persistent Agents) — `Demos/AiFoundryAgent.cs`
+    - Propósito: ejemplo de creación/uso de agentes persistentes (Persistent Agents) en un servicio compatible (p.ej. Azure AI Foundry / Persistent Agents).
+    - Comportamiento clave:
+        - Selecciona credenciales: usa `ClientSecretCredential` si están definidas (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`) o `AzureCliCredential` como fallback (requiere `az login`).
+        - Crea el agente con `PersistentAgentsClient.Administration.CreateAgentAsync(...)` si no existe, guarda el Id en `.agents/{name}.id` y luego hace runs en streaming con `agent.RunStreamingAsync(prompt)`.
+    - Notas: el endpoint del servicio está definido como constante en el fichero; considera moverlo a `.env` si necesitas configurarlo.
 
-Cómo funciona la demo (resumen):
+- 4) Ollama — `Demos/Ollama.cs`
+    - Propósito: mostrar ejecución con un motor local (Ollama) para modelos desplegados en la máquina local.
+    - Requisitos: tener Ollama instalado y modelos locales disponibles; por defecto usa `http://localhost:11434` y `llama3.1:8b` en el código.
+    - Comportamiento: crea un `OllamaApiClient` y un `ChatClientAgent`, luego usa streaming para mostrar la respuesta.
 
-1. Selecciona la opción 3 en el menú principal.
-2. El programa crea un agente persistente en el servicio de administración de agentes (si no existe), obtiene el Id y crea un hilo (AgentThread).
-3. Ejecuta el agente en modo streaming y escribe las actualizaciones parciales en la consola.
-4. Pulsa Enter para volver al menú.
+- 5) AgentThread — `Demos/AgentThread.cs`
+    - Propósito: enseñar el uso de hilos/threads del agente para mantener contexto entre turns.
+    - Comportamiento: crea un `AIAgent` con instrucciones iniciales y obtiene `agent.GetNewThread()` para mantener el historial; ejecuta múltiples turns en streaming y demuestra que el agente recuerda el contexto.
 
-Consejos de depuración:
+- 6) AgentTools — `Demos/AgentTools.cs`
+    - Propósito: ejemplo conceptual de uso de herramientas / funciones (tools) que el agente puede invocar (ej.: consultar el clima, recomendar platos).
+    - Comportamiento: define funciones locales que actúan como herramientas (p. ej. `ObtenerClima`, `RecomendarPlato`) y crea un agente con dichas herramientas; luego ejecuta en streaming.
+    - Nota: el código es ilustrativo y puede requerir adaptaciones según la versión del SDK (fábrica de funciones, firmas o forma de registrar tools pueden variar). Si ves errores al compilar esta demo, revisa las APIs del SDK que estés usando y activa `USE_REAL_AGENT` sólo si tienes las dependencias correctas.
 
-- Si la demo informa errores de autorización, revisa que hayas definido las variables de entorno correctamente o que hayas hecho `az login`.
-- Revisa la constante `endpoint` en `Demos/AiFoundryAgent.cs` si tu servicio usa otra ruta REST.
+Cómo ejecutar cualquiera de las demos
+
+1. Asegúrate de haber configurado las variables en `.env` o en el entorno (al menos: `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`, `AZURE_OPENAI_MODEL` para demos que usan Azure).
+2. Desde la raíz del proyecto ejecuta:
+
+     dotnet run --project demo-agent-framework.csproj
+
+3. En el menú interactivo selecciona la demo (1–6) que quieras probar.
+
+Notas comunes y recomendaciones
+
+- Muchas demos usan las mismas variables `AZURE_OPENAI_*` centrales (revisa `Config/Credentials.cs`).
+- Para la demo 3 (AI Foundry) la demo puede usar credenciales de Service Principal o `az login` según tu entorno; revisa `Demos/AiFoundryAgent.cs` si necesitas adaptar el endpoint.
+- Para demos que usan motores locales (Ollama), asegúrate de tener el servicio corriendo localmente y que el puerto/endpoint en el código coincida con tu configuración.
+- Si vas a subir el proyecto a un repositorio público, no subas tu `.env` ni claves; usa `.gitignore` y considera `dotnet user-secrets` o Key Vault para entornos compartidos.
 
 
 ## Cómo añadir nuevas demos
