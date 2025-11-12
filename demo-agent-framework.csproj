@@ -18,4 +18,18 @@
     <PackageReference Include="OllamaSharp" Version="5.4.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- Excluir archivos del backend del proyecto raíz -->
+  <ItemGroup>
+    <Compile Remove="Bri-Agent\**" />
+  </ItemGroup>
+
+  <!-- Excluir carpeta Code/ de este proyecto para evitar duplicados al persistir ejemplos -->
+  <ItemGroup>
+    <Compile Remove="Code\**" />
+  </ItemGroup>
+
 </Project>
