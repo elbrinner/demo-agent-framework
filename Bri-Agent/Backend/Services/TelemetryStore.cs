@@ -2,7 +2,22 @@ using System.Collections.Concurrent;
 
 namespace BriAgent.Backend.Services
 {
-    public record AgentInvocationTelemetry(DateTimeOffset time, string agentType, string model, int promptChars, int responseChars, long durationMs, string? traceId, string? spanId);
+    public record AgentInvocationTelemetry(
+        DateTimeOffset time,
+        string agentType,
+        string model,
+        int promptChars,
+        int responseChars,
+        long durationMs,
+        string? traceId,
+        string? spanId)
+    {
+        // Campos opcionales enriquecidos (si el proveedor los expone o si podemos estimarlos)
+        public int? PromptTokens { get; init; }
+        public int? CompletionTokens { get; init; }
+        public int? TotalTokens { get; init; }
+        public double? CostUsd { get; init; }
+    }
 
     public static class TelemetryStore
     {

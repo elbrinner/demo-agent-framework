@@ -1,70 +1,66 @@
 using Azure.AI.OpenAI;
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
-using System.ClientModel;
-using System;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using demo_agent_framework.Config;
+using Microsoft.Extensions.AI;
+using OpenAI;
+using System;
+using System.ClientModel;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace demo_agent_framework.Demos
 {
-    // Ejemplo educativo de agente con herramientas (function calling) para Mostrar Código.
-    // Nota: Simplificado; muestra estructura del contrato y dónde se conectarían las tools.
-    // No se compila: está bajo Bri-Agent/Backend/Code/**.
-    //
-    // Integración sugerida con Minimal API:
-    // app.MapPost("/api/tools/run", async (HttpContext http, ToolsRequest req, CancellationToken ct)
-    //     => await ToolsAgentDemo.RunAsync(http.Response, req, ct));
-
-    public sealed class ToolsRequest
+    public static class AgentTools
     {
-        public string? Prompt { get; set; }
-        public string? City { get; set; }
-    }
-
-    public sealed class ToolsResponse
-    {
-        public string? Prompt { get; set; }
-        public string? Answer { get; set; }
-        public object? ToolInfo { get; set; }
-    }
-
-    public static class ToolsAgentDemo
-    {
-        public static async Task RunAsync(HttpResponse response, ToolsRequest request, CancellationToken ct = default)
+        public static async Task RunAsync()
         {
-            var prompt = string.IsNullOrWhiteSpace(request?.Prompt)
-                ? "¿Cómo está el clima en Madrid y qué ropa recomiendas?"
-                : request!.Prompt!;
+            Console.WriteLine("=== Demo 6: Herramientas funcionales con Agent Tools ===");
 
-            // Cliente/Agente base
-            var client = new AzureOpenAIClient(new Uri(Credentials.Endpoint), new ApiKeyCredential(Credentials.ApiKey));
-            var chatClient = client.GetChatClient(Credentials.Model);
+            var endpoint = Credentials.Endpoint;
+            var apiKey = Credentials.ApiKey;
+            var model = Credentials.Model;
+            var prompt = "Eres un asistente útil que puede consultar el clima y recomendar platos típicos.";    
 
-            // Aquí se añadirían Tools reales (ejemplo educativo):
-            // var tools = new[] { new FunctionTool(ObtenerClima), new FunctionTool(RecomendarRopa) };
-            // var agent = chatClient.CreateAIAgent(new ChatClientAgentOptions("AgenteConTools") { Tools = tools });
+            var client = new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey));
 
-            // Para simplificar la explicación sin dependency extra, usamos un agente simple
-            var agent = chatClient.CreateAIAgent();
-            var answer = (await agent.RunAsync(prompt))?.ToString();
+            // Tool 1: Clima
+            [Description("Obtiene el clima para una ciudad dada.")]
+            static string ObtenerClima([Description("La ciudad para consultar el clima.")] string ciudad)
+                => $"El clima en {ciudad} es nublado con una máxima de 15°C.";
 
-            var payload = new ToolsResponse
-            {
-                Prompt = prompt,
-                Answer = answer,
-                ToolInfo = new { used = "(educativo) aquí se invocarían tools con function calling" }
-            };
+            // Tool 2: Plato típico
+            [Description("Recomienda un plato típico según la ciudad.")]
+            static string RecomendarPlato([Description("Ciudad para recomendar comida.")] string ciudad)
+                => ciudad.ToLower() switch
+                {
+                    "madrid" => "Cocido madrileño",
+                    "lisboa" => "Bacalhau à Brás",
+                    "parís" => "Coq au vin",
+                    _ => $"No tengo datos sobre platos típicos en {ciudad}."
+                };
 
-            response.Headers["Content-Type"] = "application/json";
-            await response.WriteAsJsonAsync(payload, cancellationToken: ct);
+            // Crear agente con ambas herramientas ObtenerClima y RecomendarPlato
+            var agent = client.GetChatClient(model).CreateAIAgent(
+                instructions: prompt,
+                tools: [
+                        AIFunctionFactory.Create(ObtenerClima),
+                        AIFunctionFactory.Create(RecomendarPlato)
+                ]
+            );
+
+            // Leer pregunta desde consola
+            Console.Write("\nEscribe tu pregunta: ");
+            var pregunta = Console.ReadLine();
+
+            // Ejecutar en modo streaming
+            Console.WriteLine("\nRespuesta del agente:\n");
+            await foreach (var update in agent.RunStreamingAsync(pregunta))
+                Console.Write(update);
+
+            Console.WriteLine("\n\nPulsa Enter para continuar.");
+            Console.ReadLine();
         }
-
-        // Ejemplo de firma de una tool (no implementada, solo educativa):
-        // [Description("Obtiene el clima actual para una ciudad")] 
-        // public static Task<string> ObtenerClima(string ciudad) => Task.FromResult($"Soleado en {ciudad}");
     }
 }

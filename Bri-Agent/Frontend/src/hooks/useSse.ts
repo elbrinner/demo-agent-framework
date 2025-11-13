@@ -40,7 +40,8 @@ export function useSse() {
       setEvents(prev => [...prev, ev]);
       setLastEventAt(Date.now());
 
-      if (ev.type === 'completed' || ev.type === 'complete') {
+      // Cerrar stream en eventos terminales conocidos
+      if (ev.type === 'completed' || ev.type === 'complete' || ev.type === 'workflow_completed' || ev.type === 'workflow_stopped') {
         // Cierre limpio del stream
         try { es.close(); } catch {}
         if (esRef.current === es) esRef.current = null;
@@ -51,7 +52,10 @@ export function useSse() {
 
     // Suscribirse a eventos comunes del dominio (excluye 'error' del EventSource, que no es un mensaje de app)
     es.addEventListener('message', onAny as any);
-    ['token','started','complete','completed','step_started','step_completed','workflow_started','workflow_completed']
+  ['token','started','complete','completed','step_started','step_completed','workflow_started','workflow_completed','workflow_stopped',
+     // Eventos específicos de Jokes workflow
+     'state_snapshot','joke_generated','joke_scored','approval_required','checkpoint_paused','checkpoint_resumed','approval_expired',
+     'joke_stored','joke_rejected','agent_action','moderation_blocked','workflow_error']
       .forEach(t => es.addEventListener(t, onAny as any));
 
     es.onopen = () => {

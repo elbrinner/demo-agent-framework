@@ -32,4 +32,9 @@
     <Compile Remove="Code\**" />
   </ItemGroup>
 
+  <!-- Excluir el servidor MCP del proyecto raíz para evitar conflictos de Program y atributos -->
+  <ItemGroup>
+    <Compile Remove="MCP\**" />
+  </ItemGroup>
+
 </Project>

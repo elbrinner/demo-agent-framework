@@ -1,12 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config'; // usar vitest/config para soportar la clave test
 
 export default defineConfig({
-  plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
+    environment: 'happy-dom', // entorno ligero para pruebas de componentes
+    setupFiles: ['./src/test/setup.ts'],
   },
 });

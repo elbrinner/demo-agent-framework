@@ -203,13 +203,16 @@ export const DemoHost: React.FC = () => {
     const payload = (p ?? prompt);
     try {
       setIsSubmitting(true);
-      const res = await fetch('/bri-agent/agents/tools', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: payload, tools: selectedTools }) });
+  const res = await fetch('/bri-agent/agents/tools', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ question: payload, tools: selectedTools, threadId: threadId }) });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `Fallo ${res.status}`);
       }
       const json = await res.json();
       setResponse(json);
+      if (json.threadId && typeof json.threadId === 'string') {
+        setThreadId(json.threadId);
+      }
       if (Array.isArray(json.availableTools)) {
         setAvailableTools(json.availableTools);
       }

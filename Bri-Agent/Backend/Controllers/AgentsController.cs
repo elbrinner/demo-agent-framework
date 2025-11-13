@@ -24,4 +24,22 @@ public class AgentsController : ControllerBase
     // Streaming endpoints trasladados a StreamingAgentController
 
     // Endpoints thread/tools/structured trasladados a controladores dedicados
+
+    [HttpGet("diagnostics")]
+    public IActionResult Diagnostics()
+    {
+        // Últimos eventos de telemetría
+        var telemetry = TelemetryStore.GetAll().Take(50).ToArray();
+        // Configuración básica del modelo desde Credentials
+        var model = Config.Credentials.Model;
+        var endpoint = Config.Credentials.Endpoint;
+        return Ok(new
+        {
+            endpoint,
+            model,
+            telemetryCount = telemetry.Length,
+            telemetry,
+            serverTime = DateTimeOffset.UtcNow
+        });
+    }
 }

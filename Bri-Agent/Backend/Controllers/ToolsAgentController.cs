@@ -20,12 +20,18 @@ public class ToolsAgentController : BaseAgentController
     /// Cuerpo de la petición para <c>POST /bri-agent/agents/tools</c>.
     /// Permite enviar una pregunta libre y, opcionalmente, limitar qué tools se deben considerar.
     /// </summary>
-    public record ToolRequest(string? question, string? city, string[]? tools);
+    public record ToolRequest(string? question, string? city, string[]? tools, string? threadId);
 
     /// <summary>
     /// Resultado de la ejecución de una tool: indica si se invocó, su nombre, argumentos usados y salida textual.
     /// </summary>
     public readonly record struct ToolInvocationResult(bool Invoked, string Name, object? Args, string Output);
+
+    private readonly AgentRunner _runner;
+    public ToolsAgentController(AgentRunner runner)
+    {
+        _runner = runner;
+    }
 
     [HttpPost("tools")] // POST /bri-agent/agents/tools
     /// <summary>
@@ -52,10 +58,10 @@ public class ToolsAgentController : BaseAgentController
         var activeFriendly = selectedFriendly.Count > 0 ? catalog.Where(c => selectedFriendly.Contains(c.name)).ToArray() : catalog;
 
         // Implementación basada en Agent Framework: registramos tools reales con AIFunctionFactory y dejamos que el modelo decida.
-        var endpoint = BriAgent.Backend.Config.Credentials.Endpoint;
-        var apiKey = BriAgent.Backend.Config.Credentials.ApiKey;
-        var model = BriAgent.Backend.Config.Credentials.Model;
-        var client = new AzureOpenAIClient(new Uri(endpoint), new System.ClientModel.ApiKeyCredential(apiKey));
+    var endpoint = BriAgent.Backend.Config.Credentials.Endpoint;
+    var apiKey = BriAgent.Backend.Config.Credentials.ApiKey;
+    var model = BriAgent.Backend.Config.Credentials.Model;
+    var client = new AzureOpenAIClient(new Uri(endpoint), new System.ClientModel.ApiKeyCredential(apiKey));
 
         var used = new List<object>();
 
@@ -155,8 +161,25 @@ public class ToolsAgentController : BaseAgentController
             tools: aiTools
         );
 
-        var resp = await agent.RunAsync(question);
-        var answer = resp.Text ?? string.Empty;
+        // Soporte de conversación con memoria por thread opcional
+        Microsoft.Agents.AI.AgentThread? thread = null;
+        string? threadId = req.threadId;
+        if (!string.IsNullOrWhiteSpace(threadId))
+        {
+            var ctx = BriAgent.Backend.Services.ThreadStore.GetOrCreateAgentContext(threadId!, agent);
+            thread = ctx as Microsoft.Agents.AI.AgentThread;
+        }
+        else
+        {
+            // Si el cliente no manda threadId, creamos uno para permitir continuidad opcional
+            thread = agent.GetNewThread();
+            threadId = Guid.NewGuid().ToString("N");
+        }
+
+        // Ejecutar con cancelación si el cliente cierra
+    var ct = HttpContext.RequestAborted;
+    var resp = await _runner.RunAsync(agent, question, thread: thread, cancellationToken: ct, model: model, agentType: "tools-agent");
+    var answer = resp.Text ?? string.Empty;
 
         // Fallback determinista: si el modelo no invocó ninguna tool, intentamos las heurísticas locales
         if (used.Count == 0)
@@ -189,9 +212,11 @@ public class ToolsAgentController : BaseAgentController
             )
         );
 
-        // Enviar catálogo amistoso al frontend
+        // Telemetría ya registrada por AgentRunner
+
+        // Enviar catálogo amistoso al frontend y el threadId generado/recibido
         var availableTools = catalog.Select(c => new { name = c.name, description = c.description });
-        return Ok(new { question, answer, response = answer, toolsUsed = used, availableTools, meta });
+        return Ok(new { question, answer, response = answer, toolsUsed = used, availableTools, threadId, meta });
     }
 
     // === Implementaciones de tools demo ===
