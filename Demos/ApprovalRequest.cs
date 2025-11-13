@@ -14,7 +14,7 @@ namespace demo_agent_framework.Demos
 {
     public static class ApprovalRequest
     {
-        public static async Task RunAsync(int caso = 3)
+        public static async Task RunAsync(int caso = 2)
         {
             Console.WriteLine("=== Demo 7: Revisor literario con aprobación humana ===");
 
