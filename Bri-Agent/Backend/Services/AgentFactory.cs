@@ -93,7 +93,7 @@ namespace BriAgent.Backend.Services
                 Devuelve SOLO el chiste en texto plano, sin explicación, sin JSON ni herramientas.
                 Debe caber en una sola línea.
                 """,
-                tools: null
+                tools: Array.Empty<AIFunction>()
             );
 
         public AIAgent CreateJokesReviewer()
@@ -101,7 +101,7 @@ namespace BriAgent.Backend.Services
                 instructions: """
                 Eres el Revisor (perfil analítico) de chistes de programación.
                 Evalúa el chiste y asigna un score entero 0..10.
-                Política: score < 7 es malo y debe ser rechazado por el workflow.
+                Política: score <= 7 es malo y debe ser rechazado por el workflow.
                 Escribe una justificación corta, específica y útil para mejorar.
                 Devuelve JSON EXACTO sin texto extra:
                 {"score": <0..10>, "rationale": "frase corta"}
@@ -122,10 +122,11 @@ namespace BriAgent.Backend.Services
                 - Solo pide aprobación humana (decision="hitl") cuando estés convencido de que el chiste es EXCEPCIONAL: muy original, divertido y bien construido (típicamente 9–10).
                 
                 Tu tono debe ser breve, sarcástico y con una pizca de ironía.
+                Puedes usar tools MCP (p. ej., list_jokes, index_search) si necesitas contexto del repositorio de chistes.
                 Devuelve **JSON EXACTO** sin texto adicional, con el siguiente formato:
                 {"decision": "hitl"|"auto", "notes": "justificación muy corta, seria y con un guiño gracioso"}
                 """,
-                tools: Array.Empty<AIFunction>()
+                tools: _defaultTools
             );
     }
 
@@ -161,7 +162,7 @@ namespace BriAgent.Backend.Services
 
 
 
-    public AIAgent CreateJokesGenerator() => CreateBasicAgent( instructions: "Eres el Agente Generador de chistes (perfil creativo). Crea chistes breves y originales en TEXTO PLANO. No uses JSON ni herramientas ni funciones. Devuelve solo el chiste.", tools: null ); public AIAgent CreateJokesReviewer() => CreateBasicAgent( instructions: "Eres el Revisor (perfil analítico) de chistes de programación. Puntúa con un entero 0..10 y da una justificación corta, específica y útil para mejorar. Política: puntuaciones por debajo de 7 se consideran malas. Devuelve JSON EXACTO sin texto extra: {\"score\": <0..10>, \"rationale\": \"frase corta\"}.", tools: Array.Empty<AIFunction>() ); public AIAgent CreateJokesBoss() => CreateBasicAgent( instructions: "Eres el Jefe (perfil exigente y serio con toque de humor seco). Regla: rechaza automáticamente (decision=\"auto\") los chistes que no consideres buenos. Solo pide aprobación humana (decision=\"hitl\") cuando estés realmente seguro de que es MUY bueno y gracioso (típicamente 9-10). Devuelve JSON EXACTO sin texto extra: {\"decision\": \"hitl\"|\"auto\", \"notes\": \"justificación muy corta, seria y con un guiño gracioso\"}.", tools: Array.Empty<AIFunction>() );
+    public AIAgent CreateJokesGenerator() => CreateBasicAgent( instructions: "Eres el Agente Generador de chistes (perfil creativo). Crea chistes breves y originales en TEXTO PLANO. No uses JSON ni herramientas ni funciones. Devuelve solo el chiste.", tools: Array.Empty<AIFunction>() ); public AIAgent CreateJokesReviewer() => CreateBasicAgent( instructions: "Eres el Revisor (perfil analítico) de chistes de programación. Puntúa con un entero 0..10 y da una justificación corta, específica y útil para mejorar. Política: puntuaciones de 7 o menos se consideran malas (<=7). Devuelve JSON EXACTO sin texto extra: {\"score\": <0..10>, \"rationale\": \"frase corta\"}.", tools: Array.Empty<AIFunction>() ); public AIAgent CreateJokesBoss() => CreateBasicAgent( instructions: "Eres el Jefe (perfil exigente y serio con toque de humor seco). Regla: rechaza automáticamente (decision=\"auto\") los chistes que no consideres buenos. Solo pide aprobación humana (decision=\"hitl\") cuando estés realmente seguro de que es MUY bueno y gracioso (típicamente 9-10). Puedes usar tools MCP (p. ej., list_jokes, index_search) si necesitas contexto del repositorio. Devuelve JSON EXACTO sin texto extra: {\"decision\": \"hitl\"|\"auto\", \"notes\": \"justificación muy corta, seria y con un guiño gracioso\"}.", tools: _defaultTools );
 
 
 
