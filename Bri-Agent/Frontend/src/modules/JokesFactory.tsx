@@ -373,15 +373,31 @@ export const JokesFactory: React.FC = () => {
         const map = new Map(prev.map(i => [i.id, i]));
         data.items.forEach(it => {
           if (!map.has(it.id)) {
-            const inferred: JokeItemView['state'] = it.uri ? 'stored' : (it.approvalId ? 'waiting' : (it.score != null ? 'scored' : 'generated'));
-            map.set(it.id, { id: it.id, text: it.text, score: it.score, uri: it.uri, approvalId: it.approvalId, state: inferred, actions: [] });
+            // Enfoque rápido: si score <= 7 y no hay approvalId ni uri, considerar rechazado (política del workflow)
+            const isRejectedByScore = (it.score ?? 0) <= 7 && !it.approvalId && !it.uri;
+            const inferred: JokeItemView['state'] = it.uri
+              ? 'stored'
+              : (it.approvalId
+                  ? 'waiting'
+                  : (it.score != null
+                      ? (isRejectedByScore ? 'rejected' : 'scored')
+                      : 'generated'));
+            map.set(it.id, { id: it.id, text: it.text, score: it.score, uri: it.uri, approvalId: it.approvalId, state: inferred, actions: [], reason: isRejectedByScore ? 'malo' : undefined });
           } else {
             const old = map.get(it.id)!;
             // Preservar estados terminales (rejected, stored) y no degradar el estado por datos parciales del status
-            const inferred: JokeItemView['state'] = it.uri ? 'stored' : (it.approvalId ? 'waiting' : (it.score != null ? 'scored' : old.state));
+            const isRejectedByScore = (it.score ?? 0) <= 7 && !it.approvalId && !it.uri;
+            const inferred: JokeItemView['state'] = it.uri
+              ? 'stored'
+              : (it.approvalId
+                  ? 'waiting'
+                  : (it.score != null
+                      ? (isRejectedByScore ? 'rejected' : 'scored')
+                      : old.state));
             const nextState: JokeItemView['state'] = old.state === 'rejected' ? 'rejected' : (old.state === 'stored' ? 'stored' : inferred);
+            const nextReason = nextState === 'rejected' ? (old.reason || (isRejectedByScore ? 'malo' : undefined)) : (old.reason || undefined);
             // Importante: approvalId del servidor es autoritativo; si viene null debemos limpiar el local
-            map.set(it.id, { ...old, score: it.score ?? old.score, uri: it.uri ?? old.uri, approvalId: it.approvalId ?? null, state: nextState, actions: old.actions || [] });
+            map.set(it.id, { ...old, score: it.score ?? old.score, uri: it.uri ?? old.uri, approvalId: it.approvalId ?? null, state: nextState, actions: old.actions || [], reason: nextReason });
           }
         });
         // Ordenar por número de secuencia al final del id para estabilidad visual
